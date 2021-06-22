@@ -7,6 +7,7 @@ import  MessageContainer from '../components/MessageContainer';
 import Sidebar from '../components/Sidebar.jsx';
 import { Input, Button } from 'semantic-ui-react';
 import { saveChat, resetChats, saveRoomId } from "../redux/actions";
+import ReactPlayer from 'react-player';
 
 export default function Room() {
 
@@ -15,6 +16,9 @@ export default function Room() {
     const [userData, setUserData] = useState('');
     const [chats, setChats] = useState([]);
     const [waitingList, setWaitingList] = useState([]);
+    
+    const [songUrl, setSongUrl] = useState('');
+    const [isPlaying, setIsPlaying] = useState(true);
 
     const [message, setMessage] = useState('');
     const [onWait, setOnWait] = useState(false);
@@ -63,6 +67,15 @@ export default function Room() {
             setWaitingList(waitingList.filter(waitingUser => waitingUser.email !== joineeData.email));
         });
 
+        socket.on('stream-started', result => {
+            setIsPlaying(true);
+            setSongUrl(result.link);
+        });
+
+        socket.on('stream-paused', () => {
+            setIsPlaying(false);
+        });
+
         return () => {
             let postData = { ...store.getState().user, roomId: store.getState().roomId };
             socket.emit('user-left', jwt.sign(postData, process.env.REACT_APP_SOCKET_AUTH));
@@ -75,10 +88,27 @@ export default function Room() {
 
     const handleSendMessage = e => {
         e.preventDefault();
+        console.log(message.length);
+
         let msg = {
             roomId: window.location.href.split('/room/')[1].trim(),
             sender: userData,
             message: { sent: Date.now(), text: message.trim() }
+        }
+
+        if (message.trim().startsWith('{') && message.trim().endsWith('}')) {
+            if (message.match(/play (.+)/)) {
+                let streamData = { roomId: store.getState().roomId, searchWords: message.match(/play (.+)/)[1] };
+
+                socket.emit('start-stream', jwt.sign(streamData, process.env.REACT_APP_SOCKET_AUTH));
+            
+            } else if (message.match(/pause/)) {
+                socket.emit('pause-stream', jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
+
+            } else if (message.includes('start')) {
+                socket.emit('play-stream', jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
+
+            }
         }
 
         socket.emit('new-message', jwt.sign(msg, process.env.REACT_APP_SOCKET_AUTH));
@@ -95,25 +125,26 @@ export default function Room() {
                 <Navbar socket={socket} />
                 
                 <section className='px-5 sm:px-16'>
+                    
+                    {chats.map(chat => 
+                        <MessageContainer message={chat} 
+                            isUser={chat.sender.email === userData.email} />
+                    )}
 
                     {waitingList.map(joinee => 
                         <section className='border rounded-md p-3 mb-1 flex justify-between'>
-                            <p className='sm:text-2xl text-gray-500'>{`${joinee.email}`}</p>
+                            <p className='sm:text-2xl text-gray-500 -mb-2'>{`${joinee.email}`}</p>
                             <Button 
                                 style={{
                                     backgroundColor: 'lightgreen', 
-                                    height: 35, width: 70, padding: 5
+                                    height: 35, width: 70, padding: 5,
+                                    marginBottom: -2
                                 }}
                                 onClick={() => allowJoinee(joinee)}
                             >
                                 Permit
                             </Button>
                         </section>
-                    )}
-                    
-                    {chats.map(chat => 
-                        <MessageContainer message={chat} 
-                            isUser={chat.sender.email === userData.email} />
                     )}
                 
                 </section>
@@ -129,6 +160,15 @@ export default function Room() {
             </div>
 
             <Sidebar />
+            <div className='hidden'>
+                <ReactPlayer 
+                    url={songUrl} playing={isPlaying} 
+                    onPause={() => {
+                        socket.emit('pause-stream', 
+                            jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
+                    }}
+                />
+            </div>
         </>
     );
 }
