@@ -14,7 +14,7 @@ export default function Navbar({ socket }) {
     }
 
     return (
-        <section className='shadow-md sticky top-0 z-10 bg-indigo-100 p-2 flex justify-between mb-5'>
+        <section className='shadow-md sticky top-0 z-10 bg-indigo-100 p-2 flex justify-between mb-14'>
             <div></div>
 
             <div className='flex'>

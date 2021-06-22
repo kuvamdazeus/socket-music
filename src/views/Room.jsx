@@ -8,6 +8,7 @@ import Sidebar from '../components/Sidebar.jsx';
 import { Input, Button } from 'semantic-ui-react';
 import { saveChat, resetChats, saveRoomId } from "../redux/actions";
 import ReactPlayer from 'react-player';
+import { animateScroll } from 'react-scroll';
 
 export default function Room() {
 
@@ -18,7 +19,7 @@ export default function Room() {
     const [waitingList, setWaitingList] = useState([]);
     
     const [songUrl, setSongUrl] = useState('');
-    const [isPlaying, setIsPlaying] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     const [message, setMessage] = useState('');
     const [onWait, setOnWait] = useState(false);
@@ -86,6 +87,11 @@ export default function Room() {
 
     }, []);
 
+    useEffect(() => {
+        animateScroll.scrollToBottom();
+
+    }, [chats]);
+
     const handleSendMessage = e => {
         e.preventDefault();
         console.log(message.length);
@@ -102,7 +108,7 @@ export default function Room() {
 
                 socket.emit('start-stream', jwt.sign(streamData, process.env.REACT_APP_SOCKET_AUTH));
             
-            } else if (message.match(/pause/)) {
+            } else if (message.includes('pause')) {
                 socket.emit('pause-stream', jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
 
             } else if (message.includes('start')) {
@@ -163,10 +169,7 @@ export default function Room() {
             <div className='hidden'>
                 <ReactPlayer 
                     url={songUrl} playing={isPlaying} 
-                    onPause={() => {
-                        socket.emit('pause-stream', 
-                            jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
-                    }}
+                    config={{ youtube: {playerVars: { start: 0 }} }}
                 />
             </div>
         </>
