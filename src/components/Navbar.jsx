@@ -1,16 +1,11 @@
 import { useHistory } from 'react-router-dom';
-import toggleSidebar from '../redux/actions';
 
-export default function Navbar({ socket }) {
+export default function Navbar() {
 
     const history = useHistory();
 
     const handleLeaveRoom = () => {
         history.push('/');
-    }
-
-    const handleMemberSidebar = e => {
-        toggleSidebar(true);
     }
 
     return (
@@ -23,13 +18,6 @@ export default function Navbar({ socket }) {
                     onClick={handleLeaveRoom}
                 >
                     Leave room
-                </p>
-                
-                <p 
-                    className='text-lg cursor-pointer hover:text-green-500 -mb-0 mx-1 sm:mx-5'
-                    onClick={handleMemberSidebar}
-                >
-                    Participants
                 </p>
             </div>
         </section>

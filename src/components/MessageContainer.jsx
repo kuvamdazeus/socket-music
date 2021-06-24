@@ -3,7 +3,7 @@ export default function MessageContainer({ message, isUser }) {
         <section className='flex justify-between'>
             {isUser && <div></div>}
             
-            <div className={`bg-${isUser ? 'indigo-500' : 'white'} p-2 mb-2 overflow-x-scroll no-scrollbar`}>
+            <div className={`bg-${isUser ? 'purple-900' : 'white'} p-2 mb-2 overflow-x-scroll no-scrollbar`}>
                 <p className={`text-xs ${isUser ? 'text-white' : 'text-gray-400'}`}>{message.sender.name}</p>
                 <p className={`text-xl text-${isUser ? 'white' : 'black'} max-w-screen-sm`}>{message.message.text}</p>
             </div>

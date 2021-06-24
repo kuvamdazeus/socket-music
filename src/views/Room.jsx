@@ -4,11 +4,11 @@ import store from "../redux/store";
 import jwt from 'jsonwebtoken';
 import Navbar from '../components/Navbar';
 import  MessageContainer from '../components/MessageContainer';
-import Sidebar from '../components/Sidebar.jsx';
-import { Input, Button } from 'semantic-ui-react';
+import { Input, Button, Icon } from 'semantic-ui-react';
 import { saveChat, resetChats, saveRoomId } from "../redux/actions";
 import ReactPlayer from 'react-player';
 import { animateScroll } from 'react-scroll';
+import { Sidebar } from 'semantic-ui-react';
 
 export default function Room() {
 
@@ -20,6 +20,7 @@ export default function Room() {
     
     const [songUrl, setSongUrl] = useState('');
     const [isPlaying, setIsPlaying] = useState(false);
+    const [showVideo, setShowVideo] = useState(false);
 
     const [message, setMessage] = useState('');
     const [onWait, setOnWait] = useState(false);
@@ -108,12 +109,6 @@ export default function Room() {
 
                 socket.emit('start-stream', jwt.sign(streamData, process.env.REACT_APP_SOCKET_AUTH));
             
-            } else if (message.includes('pause')) {
-                socket.emit('pause-stream', jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
-
-            } else if (message.includes('start')) {
-                socket.emit('play-stream', jwt.sign(store.getState().roomId, process.env.REACT_APP_SOCKET_AUTH));
-
             }
         }
 
@@ -156,22 +151,45 @@ export default function Room() {
                 </section>
             </section>
 
-            <div className='sticky bottom-0 w-screen bg-white p-1'>
-                <form onSubmit={handleSendMessage}>
+            <div className='sticky bottom-0 w-screen bg-white p-1 flex'>
+                <form className='w-screen' onSubmit={handleSendMessage}>
                     <Input onChange={e => setMessage(e.target.value)} 
                         style={{width: '100%'}} disabled={onWait} 
                         value={message} 
-                        placeholder={onWait ? 'Waiting for permission from room members' : 'Enter message'} />
+                        placeholder={onWait ? 'Waiting for permission from room members' : 'Enter message'} 
+                    />
                 </form>
+
+                <div className='flex justify-center items-center ml-2 pt-1'>
+                    <Icon 
+                        style={{fontSize: 22, color: 'gray', cursor: 'pointer'}} name='video play'
+                        onClick={() => {
+                            setShowVideo(true);
+                        }}
+                    />
+                </div>
             </div>
 
-            <Sidebar />
-            <div className='hidden'>
-                <ReactPlayer 
-                    url={songUrl} playing={isPlaying} 
-                    config={{ youtube: {playerVars: { start: 0 }} }}
-                />
-            </div>
+            <Sidebar
+                className='flex justify-center items-center'
+                as='div'
+                animation='overlay'
+                icon='labeled'
+                inverted
+                visible={showVideo}
+                onHide={() => setShowVideo(false)}
+            >
+                {isPlaying ? 
+                    <ReactPlayer 
+                        url={songUrl} playing={isPlaying} 
+                        controls={true}
+                        width='100%'
+                        height='100%'
+                    />
+                :
+                    <h1>No Song playing</h1>
+                }
+            </Sidebar>
         </>
     );
 }

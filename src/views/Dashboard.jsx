@@ -49,12 +49,6 @@ export default function Dashboard() {
                     >
                         Create Room
                     </Button>
-
-                    <Button
-                        onClick={() => setJoinModal(true)}
-                    >
-                        Join Room
-                    </Button>
                 </div>
             </section>
 
