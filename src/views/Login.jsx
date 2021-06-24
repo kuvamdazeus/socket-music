@@ -11,7 +11,7 @@ export default function Login() {
     const history = useHistory();
 
     useEffect(() => {
-        if (store.getState().user) {
+        if (store.getState().user && localStorage.getItem('socket-music')) {
             history.push('/dashboard');
         }
         let unsubscribe = store.subscribe(() => {
