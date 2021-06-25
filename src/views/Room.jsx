@@ -9,9 +9,12 @@ import { saveChat, resetChats, saveRoomId } from "../redux/actions";
 import ReactPlayer from 'react-player';
 import { animateScroll } from 'react-scroll';
 import { Sidebar } from 'semantic-ui-react';
+import swal from 'sweetalert';
+import { useHistory } from 'react-router-dom';
 
 export default function Room() {
 
+    const history = useHistory();
     const socket = io(`${process.env.REACT_APP_BE}/chat-room`);
 
     const [userData, setUserData] = useState('');
@@ -26,6 +29,11 @@ export default function Room() {
     const [onWait, setOnWait] = useState(false);
 
     useEffect(() => {
+        if (!localStorage.getItem('socket-music')) {
+            swal({ title: 'Error', text: 'Please login with your google id to join this room', icon: 'error' })
+            .then(() => history.push('/'));
+        }
+
         setUserData(store.getState().user);
         saveRoomId(window.location.href.split('/room/')[1].trim());
 
